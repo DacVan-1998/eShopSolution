@@ -117,22 +117,46 @@ namespace eShopSolution.Application.Catalog.Products
 
         public async Task<int> Update(ProductUpdateRequest request)
         {
-            throw new NotImplementedException();
+            var product = await _context.Products.FindAsync(request.Id);
+            var productTranslations = await _context.ProductTranslations.FirstOrDefaultAsync(x => x.ProductId == request.Id && x.LanguageId == request.LanguageId);
+            if (product==null || productTranslations==null)
+            {
+                throw new eShopException($"Cannot find product with id: {request.Id}");
+            }
+
+            productTranslations.Name = request.Name;
+            productTranslations.SeoAlias = request.SeoAlias;
+            productTranslations.SeoDescription = request.SeoDescription;
+            productTranslations.SeoTitle = request.SeoTitle;
+            productTranslations.Description = request.Description;
+            productTranslations.Details = request.Details;
+
+            _context.ProductTranslations.Update(productTranslations);
+            return await _context.SaveChangesAsync();
         }
 
-        public Task<bool> UpdatePrice(int productId, decimal newPrice)
+        public async Task<bool> UpdatePrice(int productId, decimal newPrice)
         {
-            throw new NotImplementedException();
+            var product = await _context.Products.FindAsync(productId);
+            if (product == null)
+            {
+                throw new eShopException($"Cannot find product with id: {productId}");
+            }
+            product.Price = newPrice;
+            _context.Products.Update(product);
+            return await _context.SaveChangesAsync() > 0;
         }
 
-        public Task<bool> UpdateStock(int productId, int addedQuantity)
+        public async Task<bool> UpdateStock(int productId, int addedQuantity)
         {
-            throw new NotImplementedException();
-        }
-
-        Task<List<ProductViewModel>> IManageProductService.GetAll()
-        {
-            throw new NotImplementedException();
+            var product = await _context.Products.FindAsync(productId);
+            if (product == null)
+            {
+                throw new eShopException($"Cannot find product with id: {productId}");
+            }
+            product.Stock += addedQuantity ;
+            _context.Products.Update(product);
+            return await _context.SaveChangesAsync() > 0;
         }
     }
 }
