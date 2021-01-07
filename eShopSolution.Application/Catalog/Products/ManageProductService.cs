@@ -230,11 +230,9 @@ namespace eShopSolution.Application.Catalog.Products
             if (productImage == null)
                 throw new eShopException($"Cannot find an image with id {imageId}");
             string path = productImage.ImagePath;
+            await _storageService.DeleteFileAsync(path);
             _context.ProductImages.Remove(productImage);
-            if (File.Exists(path))
-            {
-                File.Delete(path);
-            }
+           
             return await _context.SaveChangesAsync();
         }
 
